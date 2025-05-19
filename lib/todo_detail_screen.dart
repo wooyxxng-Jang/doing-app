@@ -37,7 +37,7 @@ class _TodoDetailScreenState extends State<TodoDetailScreen> {
   Color _getTagColor(String tagName) {
     final match = widget.customTags.firstWhere(
       (tag) => tag.name == tagName,
-      orElse: () => CustomTag(name: tagName, color: Colors.grey),
+      orElse: () => CustomTag(name: tagName, colorValue: Colors.grey.value),
     );
     return match.color;
   }
@@ -45,7 +45,7 @@ class _TodoDetailScreenState extends State<TodoDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF2F2F2), // 무채색 배경
+      backgroundColor: Color(0xFFF2F2F2),
       appBar: AppBar(
         title: Text('할 일 상세'),
         backgroundColor: Color(0xFFF2F2F2),
@@ -57,7 +57,6 @@ class _TodoDetailScreenState extends State<TodoDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 태그 칩 + 할 일 제목
             Row(
               children: [
                 Container(
@@ -124,8 +123,9 @@ class _TodoDetailScreenState extends State<TodoDetailScreen> {
                 onPressed: () {
                   setState(() {
                     widget.todo.memo = _memoController.text;
-                    widget.todo.text = _textController.text; // 추가
+                    widget.todo.text = _textController.text;
                   });
+                  widget.todo.save(); // Hive 저장!
                   widget.onMemoSaved();
                   Navigator.pop(context);
                 },

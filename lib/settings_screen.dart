@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'model.dart';
+import 'package:hive/hive.dart';
 
 class SettingsScreen extends StatefulWidget {
   final List<CustomTag> tags;
@@ -15,21 +16,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    customTags = List.from(widget.tags); // 원본 리스트 복사
+    customTags = List.from(widget.tags);
   }
 
   void _addTag() {
     TextEditingController nameController = TextEditingController();
     Color selectedColor = Colors.indigo;
     final List<Color> tagColors = [
-      Color(0xFFEF5350), // 빨강
-      Color(0xFFAB47BC), // 보라
-      Color(0xFF42A5F5), // 파랑
-      Color(0xFF26A69A), // 청록
-      Color(0xFF66BB6A), // 초록
-      Color(0xFFFFA726), // 주황
-      Color(0xFF555555), // 진회색
-      Color(0xFFBDBDBD), // 연회색
+      Color(0xFFEF5350),
+      Color(0xFFAB47BC),
+      Color(0xFF42A5F5),
+      Color(0xFF26A69A),
+      Color(0xFF66BB6A),
+      Color(0xFFFFA726),
+      Color(0xFF555555),
+      Color(0xFFBDBDBD),
     ];
 
     showDialog(
@@ -126,14 +127,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Text('추가'),
                   onPressed: () {
                     if (nameController.text.trim().isNotEmpty) {
+                      final newTag = CustomTag.fromColor(
+                        name: nameController.text.trim(),
+                        color: selectedColor,
+                      );
+
                       setState(() {
-                        customTags.add(
-                          CustomTag(
-                            name: nameController.text.trim(),
-                            color: selectedColor,
-                          ),
-                        );
+                        customTags.add(newTag);
                       });
+
+                      Hive.box<CustomTag>('tagBox').add(newTag);
+
                       Navigator.pop(context);
                     }
                   },
@@ -156,7 +160,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pop(context, customTags); // 뒤로가기 시 자동 반환
+        Navigator.pop(context, customTags);
         return false;
       },
       child: Scaffold(

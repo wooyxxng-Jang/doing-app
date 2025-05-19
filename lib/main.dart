@@ -3,8 +3,20 @@ import 'timer_screen.dart';
 import 'todo_detail_screen.dart';
 import 'model.dart';
 import 'settings_screen.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'model.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+
+  Hive.registerAdapter(TodoItemAdapter());
+  Hive.registerAdapter(CustomTagAdapter());
+
+  await Hive.openBox<TodoItem>('todoBox');
+  await Hive.openBox<CustomTag>('tagBox');
+
   runApp(DoingApp());
 }
 
@@ -30,9 +42,7 @@ class DoingApp extends StatelessWidget {
           ),
         ),
         textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(
-            foregroundColor: Colors.black87, // 예: '취소' 텍스트
-          ),
+          style: TextButton.styleFrom(foregroundColor: Colors.black87),
         ),
         textTheme: Theme.of(
           context,
@@ -63,13 +73,25 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    final todoBox = Hive.box<TodoItem>('todoBox');
+    final tagBox = Hive.box<CustomTag>('tagBox');
+
+    setState(() {
+      todoList = todoBox.values.toList();
+      customTags = tagBox.values.toList();
+    });
+  }
+
   List<CustomTag> customTags = [];
   List<TodoItem> todoList = [];
 
   Color _getTagColor(String tagName) {
     final match = customTags.firstWhere(
       (tag) => tag.name == tagName,
-      orElse: () => CustomTag(name: tagName, color: Colors.grey),
+      orElse: () => CustomTag(name: tagName, colorValue: Colors.grey.value),
     );
     return match.color;
   }
@@ -95,7 +117,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ✅ 태그 드롭다운
                     Row(
                       children: [
                         Text('태그:'),
@@ -216,20 +237,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   onPressed: () {
                     if (textController.text.trim().isNotEmpty) {
+                      final newTodo = TodoItem(
+                        tag: selectedTag?.name ?? '기본',
+                        text: textController.text.trim(),
+                        dueDate: selectedDateTime,
+                        memo: '',
+                      );
+
                       setState(() {
-                        todoList.add(
-                          TodoItem(
-                            tag: selectedTag?.name ?? '기본',
-                            text: textController.text.trim(),
-                            dueDate: selectedDateTime,
-                            dueText:
-                                selectedDateTime != null
-                                    ? '${selectedDateTime!.month}/${selectedDateTime!.day} (${_weekdayToString(selectedDateTime!.weekday)}) '
-                                        '${selectedDateTime!.hour.toString().padLeft(2, '0')}:${selectedDateTime!.minute.toString().padLeft(2, '0')}'
-                                    : '기한 미정',
-                          ),
-                        );
+                        todoList.add(newTodo);
                       });
+
+                      Hive.box<TodoItem>('todoBox').add(newTodo);
+
                       Navigator.pop(context);
                     }
                   },
@@ -304,11 +324,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () {
                     setState(() {
                       selectedIndexes.sort((a, b) => b.compareTo(a));
-                      for (int index in selectedIndexes) {
+                      for (int index
+                          in selectedIndexes..sort((a, b) => b.compareTo(a))) {
+                        Hive.box<TodoItem>(
+                          'todoBox',
+                        ).deleteAt(index); // Hive에서도 삭제
                         todoList.removeAt(index);
                       }
                     });
-                    Navigator.of(context).pop(); // 팝업 닫기
+                    Navigator.of(context).pop();
                   },
                 ),
               ],
@@ -331,7 +355,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 📌 전체 리스트 중 완료되지 않은 것만 따로 필터링 후 정렬
     List<TodoItem> incompleteList =
         todoList.where((item) => !item.isDone).toList();
 
@@ -353,7 +376,6 @@ class _HomeScreenState extends State<HomeScreen> {
       return a.text.compareTo(b.text);
     });
 
-    // 📌 완료된 항목은 체크한 순서 유지 (정렬 안 함)
     List<TodoItem> completedList =
         todoList.where((item) => item.isDone).toList();
 
@@ -470,6 +492,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         setState(() {
                           todo.isDone = value ?? false;
                         });
+                        todo.save();
                       },
                     ),
                     onTap: () {
@@ -479,7 +502,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           builder:
                               (_) => TodoDetailScreen(
                                 todo: todo,
-                                customTags: customTags, // 태그 리스트 같이 넘기기
+                                customTags: customTags,
                                 onMemoSaved: () => setState(() {}),
                               ),
                         ),
