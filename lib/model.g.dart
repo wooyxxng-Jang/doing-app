@@ -1,10 +1,4 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
-
 part of 'model.dart';
-
-// **************************************************************************
-// TypeAdapterGenerator
-// **************************************************************************
 
 class TodoItemAdapter extends TypeAdapter<TodoItem> {
   @override
@@ -62,10 +56,7 @@ class CustomTagAdapter extends TypeAdapter<CustomTag> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return CustomTag(
-      name: fields[0] as String,
-      colorValue: fields[1] as int,
-    );
+    return CustomTag(name: fields[0] as String, colorValue: fields[1] as int);
   }
 
   @override

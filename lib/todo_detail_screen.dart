@@ -25,7 +25,7 @@ class _TodoDetailScreenState extends State<TodoDetailScreen> {
   void initState() {
     super.initState();
     _memoController = TextEditingController(text: widget.todo.memo);
-    _textController = TextEditingController(text: widget.todo.text); // 추가
+    _textController = TextEditingController(text: widget.todo.text);
   }
 
   @override
@@ -125,7 +125,7 @@ class _TodoDetailScreenState extends State<TodoDetailScreen> {
                     widget.todo.memo = _memoController.text;
                     widget.todo.text = _textController.text;
                   });
-                  widget.todo.save(); // Hive 저장!
+                  widget.todo.save();
                   widget.onMemoSaved();
                   Navigator.pop(context);
                 },

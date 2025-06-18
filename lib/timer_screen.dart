@@ -9,7 +9,7 @@ class TimerScreen extends StatefulWidget {
 
 class _TimerScreenState extends State<TimerScreen> {
   late int focusDuration;
-  int restDuration = 10 * 60; // 10 minutes
+  int restDuration = 10 * 60;
   late int currentDuration;
   bool isFocusTime = true;
   bool isRunning = false;
@@ -43,7 +43,7 @@ class _TimerScreenState extends State<TimerScreen> {
       } else {
         setState(() {
           if (isFocusTime == false) {
-            cycleCount++; // increment only after completing rest
+            cycleCount++;
           }
           isFocusTime = !isFocusTime;
           currentDuration = isFocusTime ? focusDuration : restDuration;

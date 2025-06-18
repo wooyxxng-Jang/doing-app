@@ -50,7 +50,6 @@ class DoingApp extends StatelessWidget {
         ).textTheme.apply(bodyColor: Colors.black87, fontFamily: 'Pretendard'),
         cardColor: Colors.white,
         colorScheme: ColorScheme.light(
-          // ✨ 여기 추가!
           primary: Color(0xFF333333),
           secondary: Color(0xFF333333),
           surface: Colors.white,
@@ -327,9 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       selectedIndexes.sort((a, b) => b.compareTo(a));
                       for (int index
                           in selectedIndexes..sort((a, b) => b.compareTo(a))) {
-                        Hive.box<TodoItem>(
-                          'todoBox',
-                        ).deleteAt(index); // Hive에서도 삭제
+                        Hive.box<TodoItem>('todoBox').deleteAt(index);
                         todoList.removeAt(index);
                       }
                     });
@@ -466,9 +463,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             todo.tag,
                             style: TextStyle(
-                              color: Color(
-                                0xFF333333,
-                              ), // changed from Colors.white
+                              color: Color(0xFF333333),
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),

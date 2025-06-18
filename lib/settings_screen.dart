@@ -17,7 +17,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   final List<int> _restOptions = [1, 5, 10, 15];
 
-  // For new tag input
   final TextEditingController _tagNameController = TextEditingController();
   Color _newTagColor = Colors.blue;
 
