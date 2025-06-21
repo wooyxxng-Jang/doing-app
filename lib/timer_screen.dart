@@ -25,6 +25,17 @@ class _TimerScreenState extends State<TimerScreen> {
     int restMinutes = settingsBox.get('restMinutes', defaultValue: 10);
     restDuration = restMinutes * 60;
     currentDuration = focusDuration;
+
+    final now = DateTime.now();
+    final today = "${now.year}-${now.month}-${now.day}";
+    final lastDate = settingsBox.get('cycleDate');
+    if (lastDate == today) {
+      cycleCount = settingsBox.get('cycleCount', defaultValue: 0);
+    } else {
+      cycleCount = 0;
+      settingsBox.put('cycleDate', today);
+      settingsBox.put('cycleCount', 0);
+    }
   }
 
   @override
@@ -34,6 +45,7 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   void startTimer() {
+    final settingsBox = Hive.box('settingsBox');
     if (timer != null) timer!.cancel();
     timer = Timer.periodic(Duration(seconds: 1), (Timer t) {
       if (currentDuration > 0) {
@@ -44,6 +56,10 @@ class _TimerScreenState extends State<TimerScreen> {
         setState(() {
           if (isFocusTime == false) {
             cycleCount++;
+            final now = DateTime.now();
+            final today = "${now.year}-${now.month}-${now.day}";
+            settingsBox.put('cycleDate', today);
+            settingsBox.put('cycleCount', cycleCount);
           }
           isFocusTime = !isFocusTime;
           currentDuration = isFocusTime ? focusDuration : restDuration;
@@ -62,6 +78,7 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   Future<bool> _onWillPop() async {
+    final settingsBox = Hive.box('settingsBox');
     if (isRunning) {
       bool? result = await showDialog(
         context: context,
@@ -82,6 +99,7 @@ class _TimerScreenState extends State<TimerScreen> {
                       currentDuration = focusDuration;
                       isFocusTime = true;
                     });
+                    settingsBox.put('cycleCount', 0);
                     Navigator.of(context).pop(true);
                   },
                   child: Text('확인'),
@@ -151,10 +169,12 @@ class _TimerScreenState extends State<TimerScreen> {
                     ),
                   ),
                   onPressed: () {
+                    final settingsBox = Hive.box('settingsBox');
                     timer?.cancel();
                     setState(() {
                       isRunning = false;
                     });
+                    settingsBox.put('cycleCount', cycleCount);
                     showDialog(
                       context: context,
                       builder:

@@ -76,12 +76,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    final todoBox = Hive.box<TodoItem>('todoBox');
-    final tagBox = Hive.box<CustomTag>('tagBox');
 
-    setState(() {
-      todoList = todoBox.values.toList();
-      customTags = tagBox.values.toList();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final todoBox = Hive.box<TodoItem>('todoBox');
+      final tagBox = Hive.box<CustomTag>('tagBox');
+
+      setState(() {
+        todoList = todoBox.values.toList();
+        customTags = tagBox.values.toList();
+      });
     });
   }
 
@@ -532,19 +535,21 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: Icon(Icons.settings),
             onPressed: () async {
+              final tagBox = Hive.box<CustomTag>('tagBox');
+              final freshTags = tagBox.values.toList();
+
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder:
-                      (context) => settings.SettingsScreen(tags: customTags),
+                      (context) => settings.SettingsScreen(tags: freshTags),
                 ),
               );
 
-              if (result != null && result is List<CustomTag>) {
-                setState(() {
-                  customTags = result;
-                });
-              }
+              setState(() {
+                final refreshedBox = Hive.box<CustomTag>('tagBox');
+                customTags = refreshedBox.values.toList();
+              });
             },
           ),
         ],
